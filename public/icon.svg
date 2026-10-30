@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#080B16"/>
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#C6F24E" stroke-width="8" opacity="0.3"/>
+  <circle cx="256" cy="256" r="130" fill="none" stroke="#C6F24E" stroke-width="6" opacity="0.5"/>
+  <circle cx="256" cy="256" r="80" fill="none" stroke="#C6F24E" stroke-width="4" opacity="0.7"/>
+  <circle cx="256" cy="256" r="32" fill="#C6F24E"/>
+  <circle cx="436" cy="256" r="16" fill="#C6F24E"/>
+  <circle cx="256" cy="76" r="12" fill="#A78BFA"/>
+  <circle cx="76" cy="256" r="10" fill="#5B8CFF"/>
+  <text x="256" y="470" text-anchor="middle" fill="#C6F24E" font-family="system-ui, sans-serif" font-size="42" font-weight="900" letter-spacing="8">نوترون</text>
+</svg>

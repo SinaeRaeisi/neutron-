@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role { STUDENT TEACHER ADMIN }
+enum LessonType { VIDEO ARTICLE QUIZ EXERCISE }
+enum Level { BASIC INTERMEDIATE ADVANCED }
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         Role      @default(STUDENT)
+  bio          String?
+  avatarColor  String?
+  students     Int       @default(0)
+  rating       Float?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  coursesTaught Course[]   @relation("CourseTeacher")
+  attempts      Attempt[]
+  questions     Question[] @relation("QuestionAuthor")
+  reviews       Review[]
+
+  @@index([role])
+}
+
+model Concept {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  subject     String
+  grade       Int?
+  x           Float   @default(0)
+  y           Float   @default(0)
+
+  prerequisitesFrom ConceptPrerequisite[] @relation("FromConcept")
+  prerequisitesTo   ConceptPrerequisite[] @relation("ToConcept")
+  questions         Question[]
+
+  @@unique([title, subject])
+  @@index([subject])
+}
+
+model ConceptPrerequisite {
+  fromId String
+  toId   String
+  from   Concept @relation("FromConcept", fields: [fromId], references: [id], onDelete: Cascade)
+  to     Concept @relation("ToConcept", fields: [toId], references: [id], onDelete: Cascade)
+
+  @@id([fromId, toId])
+  @@index([toId])
+}
+
+model Course {
+  id            String  @id @default(cuid())
+  title         String
+  subject       String
+  summary       String
+  level         Level
+  cover         String
+  rating        Float   @default(0)
+  ratingsCount  Int     @default(0)
+  studentCount  Int     @default(0)
+  teacherId     String
+  teacher       User    @relation("CourseTeacher", fields: [teacherId], references: [id])
+
+  lessons       Lesson[]
+  quizzes       Quiz[]
+  conceptLinks  CourseConcept[]
+  reviews       Review[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([teacherId])
+  @@index([subject])
+}
+
+model CourseConcept {
+  courseId  String
+  conceptId String
+  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  concept   Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, conceptId])
+}
+
+model Lesson {
+  id          String     @id @default(cuid())
+  courseId    String
+  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  type        LessonType
+  durationMin Int
+  free        Boolean    @default(false)
+  order       Int
+  contentUrl  String?
+
+  @@index([courseId, order])
+}
+
+model Question {
+  id        String  @id @default(cuid())
+  prompt    String
+  options   String[]
+  answer    Int
+  weight    Int     @default(1)
+  conceptId String
+  concept   Concept @relation(fields: [conceptId], references: [id])
+  authorId  String?
+  author    User?   @relation("QuestionAuthor", fields: [authorId], references: [id])
+
+  quizLinks QuizQuestion[]
+
+  @@index([conceptId])
+  @@index([authorId])
+}
+
+model Quiz {
+  id          String @id @default(cuid())
+  title       String
+  courseId    String
+  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  durationMin Int
+  published   Boolean @default(false)
+
+  questions QuizQuestion[]
+  attempts  Attempt[]
+
+  createdAt DateTime @default(now())
+
+  @@index([courseId])
+}
+
+model QuizQuestion {
+  quizId     String
+  questionId String
+  order      Int    @default(0)
+  quiz       Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@id([quizId, questionId])
+}
+
+model Attempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers   Json
+  score     Int
+  gaps      String[]
+  takenAt   DateTime @default(now())
+
+  @@index([userId, takenAt])
+  @@index([quizId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  rating    Int
+  text      String
+  createdAt DateTime @default(now())
+
+  @@unique([courseId, authorId])
+  @@index([courseId])
+}
