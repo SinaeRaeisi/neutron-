@@ -3,179 +3,241 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
-
-enum Role { STUDENT TEACHER ADMIN }
-enum LessonType { VIDEO ARTICLE QUIZ EXERCISE }
-enum Level { BASIC INTERMEDIATE ADVANCED }
 
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
-  passwordHash String
   name         String
-  role         Role      @default(STUDENT)
+  role         String    @default("student")
+  phone        String?
   bio          String?
-  avatarColor  String?
-  students     Int       @default(0)
-  rating       Float?
+  grade        Int?
+  major        String?
   createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
 
-  coursesTaught Course[]   @relation("CourseTeacher")
+  notifications Notification[]
+  subscriptions Subscription[]
   attempts      Attempt[]
-  questions     Question[] @relation("QuestionAuthor")
-  reviews       Review[]
-
-  @@index([role])
-}
-
-model Concept {
-  id          String  @id @default(cuid())
-  title       String
-  description String?
-  subject     String
-  grade       Int?
-  x           Float   @default(0)
-  y           Float   @default(0)
-
-  prerequisitesFrom ConceptPrerequisite[] @relation("FromConcept")
-  prerequisitesTo   ConceptPrerequisite[] @relation("ToConcept")
-  questions         Question[]
-
-  @@unique([title, subject])
-  @@index([subject])
-}
-
-model ConceptPrerequisite {
-  fromId String
-  toId   String
-  from   Concept @relation("FromConcept", fields: [fromId], references: [id], onDelete: Cascade)
-  to     Concept @relation("ToConcept", fields: [toId], references: [id], onDelete: Cascade)
-
-  @@id([fromId, toId])
-  @@index([toId])
+  questions     QandAQuestion[]
+  answers       QandAAnswer[]
+  tickets       SupportTicket[]
 }
 
 model Course {
   id            String  @id @default(cuid())
   title         String
   subject       String
+  grade         Int
+  major         String?
   summary       String
-  level         Level
+  level         String
   cover         String
-  rating        Float   @default(0)
-  ratingsCount  Int     @default(0)
-  studentCount  Int     @default(0)
   teacherId     String
-  teacher       User    @relation("CourseTeacher", fields: [teacherId], references: [id])
-
-  lessons       Lesson[]
-  quizzes       Quiz[]
-  conceptLinks  CourseConcept[]
-  reviews       Review[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@index([teacherId])
-  @@index([subject])
-}
-
-model CourseConcept {
-  courseId  String
-  conceptId String
-  course    Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  concept   Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
-
-  @@id([courseId, conceptId])
-}
-
-model Lesson {
-  id          String     @id @default(cuid())
-  courseId    String
-  course      Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title       String
-  type        LessonType
-  durationMin Int
-  free        Boolean    @default(false)
-  order       Int
-  contentUrl  String?
-
-  @@index([courseId, order])
-}
-
-model Question {
-  id        String  @id @default(cuid())
-  prompt    String
-  options   String[]
-  answer    Int
-  weight    Int     @default(1)
-  conceptId String
-  concept   Concept @relation(fields: [conceptId], references: [id])
-  authorId  String?
-  author    User?   @relation("QuestionAuthor", fields: [authorId], references: [id])
-
-  quizLinks QuizQuestion[]
-
-  @@index([conceptId])
-  @@index([authorId])
+  lessons       Json
+  conceptIds    String[]
 }
 
 model Quiz {
   id          String @id @default(cuid())
   title       String
   courseId    String
-  course      Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   durationMin Int
-  published   Boolean @default(false)
-
-  questions QuizQuestion[]
-  attempts  Attempt[]
-
-  createdAt DateTime @default(now())
-
-  @@index([courseId])
-}
-
-model QuizQuestion {
-  quizId     String
-  questionId String
-  order      Int    @default(0)
-  quiz       Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  question   Question @relation(fields: [questionId], references: [id])
-
-  @@id([quizId, questionId])
+  questions   Json
 }
 
 model Attempt {
   id        String   @id @default(cuid())
   quizId    String
-  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   answers   Json
   score     Int
   gaps      String[]
   takenAt   DateTime @default(now())
-
-  @@index([userId, takenAt])
-  @@index([quizId])
 }
 
-model Review {
+model QandAQuestion {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName         String
+  title            String
+  body             String
+  tags             String[]
+  status           String   @default("open")
+  acceptedAnswerId String?
+  upvotedBy        String[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  answers          QandAAnswer[]
+}
+
+model QandAAnswer {
+  id         String   @id @default(cuid())
+  questionId String
+  question   QandAQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName   String
+  body       String
+  upvotedBy  String[]
+  createdAt  DateTime @default(now())
+}
+
+model Subscription {
   id        String   @id @default(cuid())
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String
+  grade     Int
+  major     String
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+  price     Int
+  status    String   @default("active")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  href      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PendingPayment {
+  id          String   @id @default(cuid())
+  userId      String
+  userName    String
+  plan        String
+  months      Int
+  price       Int
+  status      String   @default("pending_receipt")
+  receiptUrl  String?
+  receiptName String?
+  createdAt   DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName  String
+  subject   String
+  category  String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Json
+}
+
+model ContactRequest {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  message   String?
+  grade     Int?
+  major     String?
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  text      String
   rating    Int
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model LiveClass {
+  id             String   @id @default(cuid())
+  title          String
+  courseId       String
+  teacherId      String
+  scheduledAt    DateTime
+  durationMin    Int
+  capacity       Int
+  enrolled       Int      @default(0)
+  status         String   @default("upcoming")
+  description    String
+  requiredQuizId String?
+  notes          String?
+  attachments    Json?
+}
+
+model LiveChatState {
+  liveId         String   @id
+  chatMode       String   @default("public")
+  chatLocked     Boolean  @default(false)
+  kickedFromLive String[]
+  bannedFromChat String[]
+  updatedAt      DateTime @updatedAt
+}
+
+model LiveChatMessage {
+  id        String   @id @default(cuid())
+  liveId    String
+  userId    String
+  userName  String
+  userRole  String
   text      String
   createdAt DateTime @default(now())
+}
 
-  @@unique([courseId, authorId])
-  @@index([courseId])
+model ExamRegistration {
+  id           String   @id @default(cuid())
+  userId       String
+  examId       String
+  examType     String
+  registeredAt DateTime @default(now())
+}
+
+model MockExamAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  examId    String
+  answers   Json
+  score     Int
+  takenAt   DateTime @default(now())
+}
+
+model MockExam {
+  id            String   @id @default(cuid())
+  title         String
+  grade         Int
+  major         String
+  scheduledAt   DateTime
+  durationMin   Int
+  questionCount Int
+  registered    Int      @default(0)
+  capacity      Int
+  status        String   @default("upcoming")
+  subjects      String[]
+  description   String
+  fee           Int
+  questions     Json?
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String
+  authorId    String
+  category    String
+  cover       String
+  readMinutes Int
+  publishedAt DateTime @default(now())
+  tags        String[]
+  featured    Boolean  @default(false)
 }
