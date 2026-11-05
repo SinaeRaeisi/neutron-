@@ -30,7 +30,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const s = await authAdmin();
   if (!s) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const existing = await getArticleBySlug(params.id); // این خط از قبل await داشت
+  const existing = await getArticleBySlug(params.id); // ← await
   if (!existing) return NextResponse.json({ error: "مقاله یافت نشد." }, { status: 404 });
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
@@ -42,15 +42,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 
   if (isSeedArticle(params.id)) {
-    await dbSetArticleOverride(params.id, parsed.data); // ← await اضافه شد
-    const updated = await getArticleBySlug(params.id);  // ← await اضافه شد
+    await dbSetArticleOverride(params.id, parsed.data); // ← await
+    const updated = await getArticleBySlug(params.id);  // ← await
     return NextResponse.json({ ok: true, article: updated });
   }
 
-  const custom = await dbGetCustomArticle(params.id);   // ← await اینجا هم جا افتاده بود
+  const custom = await dbGetCustomArticle(params.id);   // ← await
   if (custom) {
-    await dbUpdateCustomArticle(custom.id, parsed.data); // ← await اضافه شد
-    const updated = await getArticleBySlug(params.id);   // ← await اضافه شد
+    await dbUpdateCustomArticle(custom.id, parsed.data); // ← await
+    const updated = await getArticleBySlug(params.id);   // ← await
     return NextResponse.json({ ok: true, article: updated });
   }
 
@@ -61,17 +61,17 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   const s = await authAdmin();
   if (!s) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const existing = getArticleBySlug(params.id);
+  const existing = await getArticleBySlug(params.id); // ← await
   if (!existing) return NextResponse.json({ error: "مقاله یافت نشد." }, { status: 404 });
 
   if (isSeedArticle(params.id)) {
-    dbMarkArticleDeleted(params.id);
+    await dbMarkArticleDeleted(params.id); // ← await
     return NextResponse.json({ ok: true, softDeleted: true });
   }
 
-  const custom = await dbGetCustomArticle(params.id);
+  const custom = await dbGetCustomArticle(params.id); // ← await
   if (custom) {
-    dbDeleteCustomArticle(custom.id);
+    await dbDeleteCustomArticle(custom.id); // ← await
     return NextResponse.json({ ok: true });
   }
 
