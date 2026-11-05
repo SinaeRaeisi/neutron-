@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifySession } from "@/lib/auth";
-import { dbListUsers, dbGetUserByEmail } from "@/lib/db-file";
-import { prisma } from "@/lib/db-file";
+import { dbListUsers, dbGetUserByEmail, prisma } from "@/lib/db-file";
 import bcrypt from "bcryptjs";
 
 const Body = z.object({

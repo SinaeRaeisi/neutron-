@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { UserPlus, Trash2, Shield, GraduationCap, BookOpen } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
@@ -41,11 +41,11 @@ export default function AdminUsersPage() {
       <form onSubmit={submit} className="card space-y-3">
         <h2 className="font-bold text-sm">افزودن کاربر جدید</h2>
         <div className="grid grid-cols-2 gap-2">
-          <input className="input" placeholder="نام" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+          <input className="input" placeholder="نام و نام خانوادگی" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
           <input className="input" placeholder="ایمیل" dir="ltr" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <input className="input" placeholder="رمز عبور" dir="ltr" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
+          <input className="input" placeholder="رمز عبور (حداقل ۶ کاراکتر)" dir="ltr" type="text" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
           <select className="input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
             <option value="teacher">معلم</option>
             <option value="student">دانش‌آموز</option>
