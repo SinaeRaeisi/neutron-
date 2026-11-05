@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     if (e instanceof Error && e.message === "duplicate-email") {
       return NextResponse.json({ error: "این ایمیل قبلاً ثبت شده." }, { status: 409 });
     }
-    console.error("[register] EXCEPTION:", e);
+    console.error("[auth/register] EXCEPTION:", e);
     return NextResponse.json({ error: "خطای سرور." }, { status: 500 });
   }
 }
