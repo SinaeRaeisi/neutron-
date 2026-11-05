@@ -6,8 +6,8 @@ import { dbCreateQuestion, dbListQandA, dbGetActiveSubscription } from "@/lib/db
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
-  // خواندن همه آزاد — ولی UI فقط برای مشترکین نشان می‌دهد
-  return NextResponse.json({ questions: dbListQandA() });
+  const questions = await dbListQandA(); // ← await اضافه شد
+  return NextResponse.json({ questions });
 }
 
 const Body = z.object({

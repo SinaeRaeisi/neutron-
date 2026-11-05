@@ -10,9 +10,9 @@ const Body = z.object({
   rating: z.number().int().min(1).max(5),
 });
 
-/** عمومی — فقط ۵ ستاره‌ها */
 export async function GET() {
-  return NextResponse.json({ testimonials: dbListVisibleTestimonials() });
+  const testimonials = await dbListVisibleTestimonials(); // ← await اضافه شد
+  return NextResponse.json({ testimonials });
 }
 
 export async function POST(req: Request) {
@@ -27,7 +27,6 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
-  dbCreateTestimonial(parsed.data);
-  // پیام یکسان برای همه — کاربر نمی‌فهمد فقط ۵ ستاره‌ها نمایش داده می‌شوند
+  await dbCreateTestimonial(parsed.data); // ← await اضافه شد
   return NextResponse.json({ ok: true, message: "نظر شما ثبت شد. ممنون!" });
 }

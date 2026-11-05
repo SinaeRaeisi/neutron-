@@ -40,7 +40,6 @@ export async function GET() {
   const all = await dbListCustomMockExams();
   const now = Date.now();
 
-  // 🔒 Admin: full | غیر Admin: بدون answer، questions فقط در پنجرهٔ زمانی
   const sanitize = (ex: any) => {
     if (isAdmin) return ex;
 
@@ -85,7 +84,7 @@ export async function POST(req: Request) {
     title: parsed.data.title,
     grade: parsed.data.grade as any,
     major: parsed.data.major as any,
-    scheduledAt: parsed.data.scheduledAt,
+    scheduledAt: new Date(parsed.data.scheduledAt), // ← تبدیل به Date برای Prisma
     durationMin: parsed.data.durationMin,
     questionCount: parsed.data.questionCount,
     registered: 0,
@@ -94,7 +93,7 @@ export async function POST(req: Request) {
     subjects: parsed.data.subjects,
     description: parsed.data.description,
     fee: parsed.data.fee,
-    questions: parsed.data.questions,
+    questions: parsed.data.questions as any,
   });
 
   return NextResponse.json({ ok: true, exam });
