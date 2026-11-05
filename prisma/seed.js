@@ -9,8 +9,8 @@ const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('در حال ساخت حساب ادمین...')
-  const passwordHash = await bcrypt.hash('Neutron@1405', 10)
-  
+  const passwordHash = await bcrypt.hash('N3utr0n_Adm1n#99!30nA)', 10)
+
   await prisma.user.upsert({
     where: { email: 'sinaeraeisi@gmail.com' },
     update: { passwordHash },

@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifySession } from "@/lib/auth";
-import { dbListCustomQuizzes, dbCreateCustomQuiz } from "@/lib/db-file";
-import { quizzes as demoQuizzes } from "@/lib/data";
+import { dbListCustomQuizzes, dbCreateCustomQuiz, dbGetCustomCourse } from "@/lib/db-file";
 
 const Q = z.object({
   id: z.string().min(1),
@@ -23,8 +22,7 @@ const Body = z.object({
 });
 
 export async function GET() {
-  const custom = await dbListCustomQuizzes(); // ← await
-  const all = [...demoQuizzes, ...custom];
+  const all = await dbListCustomQuizzes();
   return NextResponse.json({ quizzes: all });
 }
 
@@ -39,6 +37,14 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
-  const created = await dbCreateCustomQuiz(parsed.data as any); // ← await
+  // 🔒 چک کردن اینکه معلم فقط برای دوره خودش آزمون می‌سازد
+  if (s.role === "teacher") {
+    const course = await dbGetCustomCourse(parsed.data.courseId);
+    if (!course || course.teacherId !== s.userId) {
+      return NextResponse.json({ error: "شما فقط می‌توانید برای دوره‌های خودتان آزمون بسازید." }, { status: 403 });
+    }
+  }
+
+  const created = await dbCreateCustomQuiz(parsed.data as any);
   return NextResponse.json({ ok: true, quiz: created });
 }

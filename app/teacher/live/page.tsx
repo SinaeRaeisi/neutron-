@@ -6,10 +6,9 @@ import {
   Pencil, Trash2, X, LogIn, AlertCircle, FileText, Upload, Download,
   Loader2,
 } from "lucide-react";
-import { courses as allCourses, getCourse } from "@/lib/data";
+import { getCourse } from "@/lib/data";
 import { formatIranDate, formatIranTime } from "@/lib/iran-time";
 import type { LiveClass, Course, Attachment } from "@/lib/types";
-
 interface QuizOpt { id: string; title: string; }
 
 export default function TeacherLive() {
@@ -42,16 +41,22 @@ export default function TeacherLive() {
   }, []);
 
   useEffect(() => {
+    // ۱. گرفتن اطلاعات کاربر
     fetch("/api/me").then(r => r.ok ? r.json() : null).then(m => {
       if (!m) return;
       setMe(m);
-      const mine = allCourses.filter(c =>
-        c.teacherId === m.id || (c.availableTeachers ?? []).includes(m.id)
-      );
-      setMyCourses(mine);
-      if (mine.length > 0) setCourseId(mine[0].id);
+      
+      // ۲. گرفتن همه دوره‌ها و فیلتر کردن فقط دوره‌های خود این معلم
+      fetch("/api/courses").then(r => r.ok ? r.json() : { courses: [] }).then(d => {
+        const all = (d.courses ?? []) as Course[];
+        const mine = all.filter(c => c.teacherId === m.id || (c.availableTeachers ?? []).includes(m.id));
+        setMyCourses(mine);
+        if (mine.length > 0 && !courseId) setCourseId(mine[0].id);
+      }).catch(() => {});
+      
     }).catch(() => {});
 
+    // ۳. گرفتن آزمون‌های معلم
     fetch("/api/quizzes").then(r => r.ok ? r.json() : { quizzes: [] })
       .then(d => setAllQuizzes((d.quizzes ?? []).map((q: any) => ({ id: q.id, title: q.title }))))
       .catch(() => {});
