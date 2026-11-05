@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { cookies } from "next/headers";
-import { verifyPending, signSession, setSessionCookie, clearPendingCookie } from "@/lib/auth";
-import { dbCreateUserWithEmail } from "@/lib/db-file";
-import { sendWelcomeEmail } from "@/lib/email";
+import { signSession, setSessionCookie } from "@/lib/auth";
+import { dbCreateUserWithPassword } from "@/lib/db-file";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
-import type { Grade, Major } from "@/lib/types";
 
 const VALID_GRADES = [6, 7, 8, 9, 10, 11, 12];
-const VALID_MAJORS: Major[] = ["عمومی", "ریاضی", "تجربی", "انسانی", "فنی", "هنر"];
+const VALID_MAJORS = ["عمومی", "ریاضی", "تجربی", "انسانی", "فنی", "هنر"];
 
 const Body = z.object({
   name: z.string().min(2).max(80),
+  email: z.string().email().max(200),
+  password: z.string().min(8).max(100),
   grade: z.number().int().refine(g => VALID_GRADES.includes(g), { message: "پایهٔ نامعتبر" }),
-  major: z.string().refine(m => VALID_MAJORS.includes(m as Major), { message: "رشتهٔ نامعتبر" }),
-  phone: z.string().optional(),
+  major: z.string().refine(m => VALID_MAJORS.includes(m), { message: "رشتهٔ نامعتبر" }),
 });
 
 export async function POST(req: Request) {
@@ -23,43 +21,22 @@ export async function POST(req: Request) {
     const rl = rateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
     if (!rl.ok) return NextResponse.json({ error: "تعداد تلاش زیاد." }, { status: 429 });
 
-    const pending = cookies().get("n_pending")?.value;
-    if (!pending) return NextResponse.json({ error: "ابتدا با ایمیل وارد شو." }, { status: 401 });
-
-    const verified = await verifyPending(pending);
-    if (!verified) return NextResponse.json({ error: "جلسه منقضی. دوباره." }, { status: 401 });
-
-    let body: unknown;
-    try { body = await req.json(); } catch {
-      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-    }
-    const parsed = Body.safeParse(body);
+    const parsed = Body.safeParse(await req.json().catch(() => ({})));
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "اطلاعات نامعتبر." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "اطلاعات نامعتبر." }, { status: 400 });
     }
 
-    const user = await dbCreateUserWithEmail({
+    const user = await dbCreateUserWithPassword({
       name: parsed.data.name.trim(),
-      email: verified.email,
-      grade: parsed.data.grade as Grade,
-      major: parsed.data.major as Major,
-      phone: parsed.data.phone?.trim() || undefined,
+      email: parsed.data.email.trim(),
+      password: parsed.data.password,
+      grade: parsed.data.grade,
+      major: parsed.data.major,
     });
 
-    const token = await signSession(
-      { userId: user.id, role: user.role, name: user.name },
-      true
-    );
+    const token = await signSession({ userId: user.id, role: user.role, name: user.name }, true);
     await setSessionCookie(token, true);
-    clearPendingCookie();
 
-    // ایمیل خوش‌آمد (نادیده بگیر خطا)
-    sendWelcomeEmail(user.email!, user.name).catch(e => console.error("[register welcome]", e));
-
-    console.log(`[register] ${user.name} (${user.email}) پایهٔ ${user.grade} ${user.major}`);
     return NextResponse.json({ ok: true, role: user.role, name: user.name });
   } catch (e: any) {
     if (e instanceof Error && e.message === "duplicate-email") {

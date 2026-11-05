@@ -9,24 +9,27 @@ datasource db {
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
+  passwordHash String?   // اضافه شده برای ورود با ایمیل و رمز
   name         String
   role         String    @default("student")
   phone        String?
   bio          String?
+  avatarColor  String?
   grade        Int?
   major        String?
   createdAt    DateTime  @default(now())
 
-  notifications Notification[]
-  subscriptions Subscription[]
-  attempts      Attempt[]
-  questions     QandAQuestion[]
-  answers       QandAAnswer[]
-  tickets       SupportTicket[]
+  coursesTaught  Course[]        @relation("CourseTeacher")
+  attempts       Attempt[]
+  questions      QandAQuestion[]
+  answers        QandAAnswer[]
+  subscriptions  Subscription[]
+  notifications  Notification[]
+  supportTickets SupportTicket[]
 }
 
 model Course {
-  id            String  @id @default(cuid())
+  id            String   @id @default(cuid())
   title         String
   subject       String
   grade         Int
@@ -35,8 +38,11 @@ model Course {
   level         String
   cover         String
   teacherId     String
-  lessons       Json
+  teacher       User     @relation("CourseTeacher", fields: [teacherId], references: [id])
   conceptIds    String[]
+  lessons       Json
+  
+  createdAt     DateTime @default(now())
 }
 
 model Quiz {
@@ -71,6 +77,7 @@ model QandAQuestion {
   upvotedBy        String[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  
   answers          QandAAnswer[]
 }
 
@@ -87,16 +94,17 @@ model QandAAnswer {
 }
 
 model Subscription {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan      String
-  grade     Int
-  major     String
-  startedAt DateTime @default(now())
-  expiresAt DateTime
-  price     Int
-  status    String   @default("active")
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan         String
+  grade        Int
+  major        String
+  startedAt    DateTime @default(now())
+  expiresAt    DateTime
+  durationDays Int
+  price        Int
+  status       String   @default("active")
 }
 
 model Notification {
@@ -114,6 +122,7 @@ model PendingPayment {
   id          String   @id @default(cuid())
   userId      String
   userName    String
+  userPhone   String?
   plan        String
   months      Int
   price       Int
@@ -121,6 +130,8 @@ model PendingPayment {
   receiptUrl  String?
   receiptName String?
   createdAt   DateTime @default(now())
+  reviewedAt  DateTime?
+  reviewNote  String?
 }
 
 model SupportTicket {
@@ -241,6 +252,7 @@ model Article {
   tags        String[]
   featured    Boolean  @default(false)
 }
+
 model Config {
   key   String @id
   value Json

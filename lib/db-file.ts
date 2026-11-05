@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import bcrypt from 'bcryptjs'
 import type {
   User, Course, Quiz, Attempt, QandAQuestion, QandAAnswer,
   Subscription, Notification, PendingPayment, LiveClass, MockExam,
@@ -258,3 +259,37 @@ export async function dbListChatMessages(liveId: string, viewerId: string, viewe
 }
 export async function dbCreateChatMessage(input: any): Promise<LiveChatMessage> { return prisma.liveChatMessage.create({ data: input }) as any }
 export async function dbDeleteChatMessage(id: string): Promise<boolean> { await prisma.liveChatMessage.delete({ where: { id } }); return true }
+export async function dbCreateUserWithPassword(input: {
+  name: string;
+  email: string;
+  password: string;
+  grade: number;
+  major: string;
+  phone?: string;
+}): Promise<User> {
+  const existing = await prisma.user.findUnique({ where: { email: input.email.toLowerCase() } })
+  if (existing) throw new Error("duplicate-email")
+  
+  const passwordHash = await bcrypt.hash(input.password, 10)
+  
+  const u = await prisma.user.create({ 
+    data: { 
+      name: input.name, 
+      email: input.email.toLowerCase(), 
+      passwordHash,
+      grade: input.grade, 
+      major: input.major, 
+      phone: input.phone, 
+      role: "student" 
+    } 
+  })
+  return normalizeUser(u)
+}
+
+export async function dbVerifyUserPassword(email: string, password: string): Promise<User | null> {
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } })
+  if (!user || !user.passwordHash) return null
+  const valid = await bcrypt.compare(password, user.passwordHash)
+  if (!valid) return null
+  return normalizeUser(user)
+}
