@@ -214,7 +214,15 @@ const coverClass = {
 } as const;
 
 function FeaturedCourses() {
-  const featured = courses.slice(0, 6);
+  const featured = courses; // چون دیتابیس خالی است، همان آرایه را بده
+if (featured.length === 0) {
+  return (
+    <section id="courses" className="py-24 text-center border-y border-line/60">
+      <h2 className="text-2xl font-bold">هنوز دوره‌ای ثبت نشده است.</h2>
+      <p className="text-muted mt-2">به‌زودی دوره‌های جدید اضافه می‌شوند.</p>
+    </section>
+  );
+}
   return (
     <section id="courses" className="py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
@@ -295,7 +303,8 @@ function Why() {
 
 /* ═══════════════════ Articles ═══════════════════ */
 function Articles() {
-  const featured = articles.slice(0, 3);
+  const featured = articles;
+  if (featured.length === 0) return null; // اگر مقاله‌ای نیست، کلاً نمایش نده
   return (
     <section id="articles" className="py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 md:px-8">

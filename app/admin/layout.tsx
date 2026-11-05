@@ -16,6 +16,7 @@ const links = [
   { href: "/admin/tickets", label: "تیکت‌ها", Icon: LifeBuoy },
   { href: "/teacher", label: "پنل معلم", Icon: BookOpen },
   { href: "/app", label: "نمای دانش‌آموز", Icon: Users },
+  { href: "/admin/users", label: "کاربران", Icon: Users }, 
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
