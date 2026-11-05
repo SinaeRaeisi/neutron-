@@ -52,7 +52,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     );
   }
 
-  const updated = dbUpdateMockExam(params.id, {
+  const updated = await dbUpdateMockExam(params.id, {
     ...parsed.data,
     grade: parsed.data.grade as any,
     major: parsed.data.major as any,
@@ -66,7 +66,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   const a = await authAdmin();
   if ("error" in a) return NextResponse.json({ error: a.error }, { status: a.status });
 
-  const ok = dbDeleteMockExam(params.id);
+  const ok = await dbDeleteMockExam(params.id);
   if (!ok) return NextResponse.json({ error: "یافت نشد." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

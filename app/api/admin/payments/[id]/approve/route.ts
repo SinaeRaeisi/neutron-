@@ -11,21 +11,16 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
   const token = cookies().get("n_session")?.value;
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const s = await verifySession(token);
-  if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  if (s.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!s || s.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const payment = dbGetPendingPayment(params.id);
+  const payment = await dbGetPendingPayment(params.id); // ← await
   if (!payment) return NextResponse.json({ error: "not found" }, { status: 404 });
-  if (payment.status !== "pending_review") {
-    return NextResponse.json({ error: "این پرداخت قابل تأیید نیست." }, { status: 400 });
-  }
+  if (payment.status !== "pending_review") return NextResponse.json({ error: "این پرداخت قابل تأیید نیست." }, { status: 400 });
 
-  const user = dbGetUserById(payment.userId);
-  if (!user?.grade || !user?.major) {
-    return NextResponse.json({ error: "پروفایل کاربر ناقص است." }, { status: 400 });
-  }
+  const user = await dbGetUserById(payment.userId); // ← await
+  if (!user?.grade || !user?.major) return NextResponse.json({ error: "پروفایل کاربر ناقص است." }, { status: 400 });
 
-  const sub = dbCreateSubscription({
+  const sub = await dbCreateSubscription({ // ← await
     userId: payment.userId,
     plan: payment.plan as PlanId,
     grade: user.grade,
@@ -34,16 +29,15 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
     price: payment.price,
   });
 
-  dbUpdatePendingPayment(payment.id, {
+  await dbUpdatePendingPayment(payment.id, { // ← await
     status: "approved",
     reviewedAt: new Date().toISOString(),
   });
 
-  // 🔔 اعلان به کاربر
-  dbCreateNotification({
+  await dbCreateNotification({ // ← await
     userId: payment.userId,
     title: "اشتراک فعال شد",
-    body: `اشتراک ${planName[payment.plan as PlanId]} برای ${payment.months} ماه فعال شد. حالا به همهٔ محتوا دسترسی داری.`,
+    body: `اشتراک ${planName[payment.plan as PlanId]} برای ${payment.months} ماه فعال شد.`,
     href: "/app/subscription",
   });
 

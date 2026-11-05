@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const parsed = Body.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "پیام نامعتبر." }, { status: 400 });
 
-  const ticket = dbAddTicketMessage({
+  const ticket = await dbAddTicketMessage({
     ticketId: params.id,
     authorId: s.userId,
     authorRole: "admin",

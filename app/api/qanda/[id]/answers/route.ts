@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   // 🔒 چک اشتراک (معلم و مدیر معاف)
   if (s.role === "student") {
-    const sub = dbGetActiveSubscription(s.userId);
+    const sub = await dbGetActiveSubscription(s.userId);
     if (!sub) {
       return NextResponse.json(
         { error: "برای ارسال پاسخ، اشتراک فعال لازم است.", code: "subscription_required" },
@@ -31,7 +31,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
   }
 
-  const q = dbGetQuestion(params.id);
+  const q = await dbGetQuestion(params.id);
   if (!q) return NextResponse.json({ error: "سؤال یافت نشد." }, { status: 404 });
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
@@ -39,7 +39,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ error: "پاسخ نامعتبر." }, { status: 400 });
   }
 
-  const a = dbCreateAnswer({
+  const a = await dbCreateAnswer({
     questionId: params.id,
     userId: s.userId,
     userName: s.name,

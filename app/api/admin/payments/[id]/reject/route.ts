@@ -13,14 +13,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (s.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const payment = dbGetPendingPayment(params.id);
+  const payment = await dbGetPendingPayment(params.id);
   if (!payment) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   let body: unknown;
   try { body = await req.json(); } catch { /* allow empty */ }
   const parsed = Body.safeParse(body ?? {});
 
-  const updated = dbUpdatePendingPayment(payment.id, {
+  const updated = await dbUpdatePendingPayment(payment.id, {
     status: "rejected",
     reviewedAt: new Date().toISOString(),
     reviewNote: parsed.success ? parsed.data.note : "",

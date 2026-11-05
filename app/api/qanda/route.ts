@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   // 🔒 چک اشتراک
-  const sub = dbGetActiveSubscription(s.userId);
+  const sub = await dbGetActiveSubscription(s.userId);
   if (!sub) {
     return NextResponse.json(
       { error: "برای ثبت سؤال، اشتراک فعال لازم است.", code: "subscription_required" },
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const q = dbCreateQuestion({
+  const q = await dbCreateQuestion({
     userId: s.userId,
     userName: s.name,
     userRole: s.role as "student" | "teacher" | "admin",

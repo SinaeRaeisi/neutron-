@@ -16,16 +16,12 @@ export async function POST(req: Request) {
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const user = dbGetUserById(s.userId);
+  const user = await dbGetUserById(s.userId); // ← await
   if (!user?.grade || !user?.major) {
     return NextResponse.json({ error: "اول پروفایل را کامل کن." }, { status: 400 });
   }
 
-  let body: unknown;
-  try { body = await req.json(); } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-  const parsed = Body.safeParse(body);
+  const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
   const plan = plans.find(p => p.id === parsed.data.plan);
@@ -37,7 +33,7 @@ export async function POST(req: Request) {
   }
 
   const price = calcPrice(plan, months);
-  const payment = dbCreatePendingPayment({
+  const payment = await dbCreatePendingPayment({ // ← await
     userId: user.id,
     userName: user.name,
     userPhone: user.phone,
@@ -48,13 +44,7 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    payment: {
-      id: payment.id,
-      plan: plan.id,
-      planName: plan.name,
-      months,
-      price,
-    },
+    payment: { id: payment.id, plan: plan.id, planName: plan.name, months, price },
     bank: {
       cardNumber: process.env.PAYMENT_CARD_NUMBER ?? "—",
       cardOwner: process.env.PAYMENT_CARD_OWNER ?? "—",

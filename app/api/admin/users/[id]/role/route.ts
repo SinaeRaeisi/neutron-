@@ -22,7 +22,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const parsed = Body.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "نقش نامعتبر." }, { status: 400 });
 
-  const updated = dbUpdateUser(params.id, { role: parsed.data.role });
+  const updated = await dbUpdateUser(params.id, { role: parsed.data.role });
   if (!updated) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ ok: true, user: updated });
 }

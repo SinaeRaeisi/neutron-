@@ -9,7 +9,7 @@ export async function PATCH(_: Request, { params }: { params: { id: string } }) 
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const ok = dbMarkNotificationRead(s.userId, params.id);
+  const ok = await dbMarkNotificationRead(s.userId, params.id);
   if (!ok) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ ok: true, unread: dbUnreadCount(s.userId) });
 }

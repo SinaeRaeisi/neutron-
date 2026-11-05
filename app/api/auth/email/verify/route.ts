@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: msgs[v.reason ?? "no_code"] }, { status: 401 });
     }
 
-    const existing = dbGetUserByEmail(norm);
+    const existing = await dbGetUserByEmail(norm); // ← await اضافه شد
     if (existing) {
       const token = await signSession(
         { userId: existing.id, role: existing.role, name: existing.name },
@@ -46,21 +46,12 @@ export async function POST(req: Request) {
       );
       await setSessionCookie(token, parsed.data.remember);
       console.log(`[email] login ${existing.email} (${existing.role})`);
-      return NextResponse.json({
-        ok: true,
-        role: existing.role,
-        name: existing.name,
-      });
+      return NextResponse.json({ ok: true, role: existing.role, name: existing.name });
     }
 
-    // کاربر جدید → pending
     const pending = await signPending(norm);
     setPendingCookie(pending);
-    return NextResponse.json({
-      ok: true,
-      needsRegistration: true,
-      email: norm,
-    });
+    return NextResponse.json({ ok: true, needsRegistration: true, email: norm });
   } catch (e: any) {
     console.error("[email verify] EXCEPTION:", e);
     return NextResponse.json({ error: "خطای سرور." }, { status: 500 });

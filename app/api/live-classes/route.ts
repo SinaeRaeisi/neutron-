@@ -28,7 +28,7 @@ export async function GET() {
   try {
     const s = await verifySession(token);
     if (!s) return NextResponse.json({ classes: [] });
-    const all = dbListCustomLiveClasses();
+    const all = await dbListCustomLiveClasses();
     if (s.role === "teacher") {
       return NextResponse.json({ classes: all.filter(c => c.teacherId === s.userId) });
     }
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const live = dbCreateCustomLiveClass({
+  const live = await dbCreateCustomLiveClass({
     id: "lv-" + Math.random().toString(36).slice(2, 8),
     title: parsed.data.title,
     courseId: parsed.data.courseId,

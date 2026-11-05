@@ -22,9 +22,9 @@ const Body = z.object({
   questions: z.array(Q).min(1),
 });
 
-// همه می‌توانند لیست را ببینند (demo + سفارشی)
 export async function GET() {
-  const all = [...demoQuizzes, ...dbListCustomQuizzes()];
+  const custom = await dbListCustomQuizzes(); // ← await
+  const all = [...demoQuizzes, ...custom];
   return NextResponse.json({ quizzes: all });
 }
 
@@ -32,18 +32,13 @@ export async function POST(req: Request) {
   const token = cookies().get("n_session")?.value;
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const s = await verifySession(token);
-  if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  if (s.role !== "teacher" && s.role !== "admin") {
+  if (!s || (s.role !== "teacher" && s.role !== "admin")) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  let body: unknown;
-  try { body = await req.json(); } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-  const parsed = Body.safeParse(body);
+  const parsed = Body.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
-  const created = dbCreateCustomQuiz(parsed.data);
+  const created = await dbCreateCustomQuiz(parsed.data as any); // ← await
   return NextResponse.json({ ok: true, quiz: created });
 }

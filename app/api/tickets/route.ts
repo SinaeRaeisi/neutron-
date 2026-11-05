@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
-  const ticket = dbCreateTicket({
+  const ticket = await dbCreateTicket({
     userId: s.userId,
     userName: s.name,
     subject: parsed.data.subject,

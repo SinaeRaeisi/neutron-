@@ -23,14 +23,14 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
-  const payment = dbGetPendingPayment(parsed.data.paymentId);
+  const payment = await dbGetPendingPayment(parsed.data.paymentId);
   if (!payment) return NextResponse.json({ error: "پرداخت یافت نشد." }, { status: 404 });
   if (payment.userId !== s.userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   if (payment.status !== "pending_receipt") {
     return NextResponse.json({ error: "این پرداخت قبلاً ثبت شده." }, { status: 400 });
   }
 
-  const updated = dbUpdatePendingPayment(payment.id, {
+  const updated = await dbUpdatePendingPayment(payment.id, {
     status: "pending_review",
     receiptUrl: parsed.data.receiptUrl,
     receiptName: parsed.data.receiptName,

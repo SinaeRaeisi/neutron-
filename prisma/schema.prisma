@@ -241,3 +241,7 @@ model Article {
   tags        String[]
   featured    Boolean  @default(false)
 }
+model Config {
+  key   String @id
+  value Json
+}

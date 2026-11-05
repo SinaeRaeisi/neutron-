@@ -23,18 +23,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const idemKey = `${session.userId}:${params.id}`;
   const last = recentSubmissions.get(idemKey);
   const now = Date.now();
-  if (last && now - last < 5_000) {
-    return NextResponse.json({ error: "Submission in progress." }, { status: 409 });
-  }
+  if (last && now - last < 5_000) return NextResponse.json({ error: "Submission in progress." }, { status: 409 });
   recentSubmissions.set(idemKey, now);
 
   // ابتدا دمو، سپس سفارشی
-  const quiz = demoQuizzes.find(q => q.id === params.id) ?? dbGetCustomQuiz(params.id);
+  let quiz = demoQuizzes.find(q => q.id === params.id);
   if (!quiz) {
-    return NextResponse.json(
-      { error: "این آزمون در سرور یافت نشد. اگر سفارشی است، در پنل معلم دوباره ایجادش کن." },
-      { status: 404 }
-    );
+    quiz = (await dbGetCustomQuiz(params.id)) as any; // ← await
+  }
+
+  if (!quiz) {
+    return NextResponse.json({ error: "این آزمون در سرور یافت نشد." }, { status: 404 });
   }
 
   let body: unknown;
@@ -44,7 +43,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const parsed = Body.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid answers." }, { status: 400 });
 
-  const totalWeight = quiz.questions.reduce((s, q) => s + q.weight, 0);
+  const totalWeight = quiz.questions.reduce((s: number, q: any) => s + q.weight, 0);
   let gained = 0;
   const gaps: string[] = [];
   const missing: string[] = [];
@@ -56,9 +55,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     else gaps.push(q.conceptId);
   }
 
-  if (missing.length > 0) {
-    return NextResponse.json({ error: "Some questions are unanswered.", missing }, { status: 400 });
-  }
+  if (missing.length > 0) return NextResponse.json({ error: "Some questions are unanswered.", missing }, { status: 400 });
 
   const score = totalWeight > 0 ? Math.round((gained / totalWeight) * 100) : 0;
 

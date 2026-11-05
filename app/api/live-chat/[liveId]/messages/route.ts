@@ -14,7 +14,7 @@ export async function POST(req: Request, { params }: { params: { liveId: string 
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const live = dbGetLiveClassById(params.liveId);
+  const live = await dbGetLiveClassById(params.liveId);
   if (!live) return NextResponse.json({ error: "کلاس یافت نشد." }, { status: 404 });
 
   const now = Date.now();
@@ -24,7 +24,7 @@ export async function POST(req: Request, { params }: { params: { liveId: string 
     return NextResponse.json({ error: "کلاس در حال برگزاری نیست." }, { status: 403 });
   }
 
-  const state = dbGetChatState(params.liveId);
+  const state = await dbGetChatState(params.liveId);
 
   if (state.bannedFromChat?.includes(s.userId)) {
     return NextResponse.json(
@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: { params: { liveId: string 
     return NextResponse.json({ error: "پیام نامعتبر." }, { status: 400 });
   }
 
-  const msg = dbCreateChatMessage({
+  const msg = await dbCreateChatMessage({
     liveId: params.liveId,
     userId: s.userId,
     userName: s.name,

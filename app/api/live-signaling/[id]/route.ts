@@ -48,7 +48,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const live = dbGetLiveClassById(params.id);
+  const live = await dbGetLiveClassById(params.id);
   if (!live) return NextResponse.json({ error: "کلاس یافت نشد." }, { status: 404 });
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
@@ -65,7 +65,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         return NextResponse.json({ error: "فقط معلم می‌تواند پخش کند." }, { status: 403 });
       }
     } else {
-      const state = dbGetChatState(params.id);
+      const state = await dbGetChatState(params.id);
       if (state.kickedFromLive?.includes(s.userId)) {
         return NextResponse.json(
           { error: "شما از این کلاس اخراج شده‌اید. با معلم تماس بگیر." },
@@ -74,7 +74,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }
 
       if (s.role === "student") {
-        const sub = dbGetActiveSubscription(s.userId);
+        const sub = await dbGetActiveSubscription(s.userId);
         if (!sub) {
           return NextResponse.json({ error: "اشتراک فعال لازم است." }, { status: 403 });
         }
@@ -127,7 +127,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
     kickPeer(params.id, parsed.data.userId);
 
-    const state = dbGetChatState(params.id);
+    const state = await dbGetChatState(params.id);
     const kicked = new Set(state.kickedFromLive ?? []);
     kicked.add(parsed.data.userId);
     dbSetChatState(params.id, { kickedFromLive: [...kicked] });

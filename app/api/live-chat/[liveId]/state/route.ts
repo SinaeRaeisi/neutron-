@@ -17,7 +17,7 @@ export async function PATCH(req: Request, { params }: { params: { liveId: string
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const live = dbGetLiveClassById(params.liveId);
+  const live = await dbGetLiveClassById(params.liveId);
   if (!live) return NextResponse.json({ error: "کلاس یافت نشد." }, { status: 404 });
 
   if (s.role !== "admin" && live.teacherId !== s.userId) {
@@ -29,7 +29,7 @@ export async function PATCH(req: Request, { params }: { params: { liveId: string
     return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
   }
 
-  const current = dbGetChatState(params.liveId);
+  const current = await dbGetChatState(params.liveId);
   const banned = new Set(current.bannedFromChat ?? []);
 
   if (parsed.data.banUser) banned.add(parsed.data.banUser);
@@ -45,7 +45,7 @@ export async function PATCH(req: Request, { params }: { params: { liveId: string
   if (parsed.data.chatLocked !== undefined) patch.chatLocked = parsed.data.chatLocked;
   if (parsed.data.banUser || parsed.data.unbanUser) patch.bannedFromChat = [...banned];
 
-  const state = dbSetChatState(params.liveId, patch);
+  const state = await dbSetChatState(params.liveId, patch);
   return NextResponse.json({
     ok: true,
     state: {

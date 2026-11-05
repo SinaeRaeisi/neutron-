@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "ایمیل یا رمز اشتباه است." }, { status: 401 });
     }
 
-    const admin = dbGetUserByEmail(adminEmail);
+    const admin = await dbGetUserByEmail(adminEmail);
     if (!admin) {
       console.error("[login-password] admin user not in DB for email:", adminEmail);
       return NextResponse.json(

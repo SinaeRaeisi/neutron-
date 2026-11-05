@@ -26,7 +26,7 @@ export async function PATCH(req: Request) {
   const parsed = PatchBody.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
 
-  const updated = dbUpdateContact(parsed.data.id, { status: parsed.data.status });
+  const updated = await dbUpdateContact(parsed.data.id, { status: parsed.data.status });
   if (!updated) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ ok: true, contact: updated });
 }

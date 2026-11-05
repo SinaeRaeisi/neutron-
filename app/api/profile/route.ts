@@ -42,7 +42,7 @@ export async function PATCH(req: Request) {
     patch.major = parsed.data.major as Major;
   }
 
-  const updated = dbUpdateUser(s.userId, patch);
+  const updated = await dbUpdateUser(s.userId, patch);
   if (!updated) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ ok: true, user: updated });
 }
@@ -52,7 +52,7 @@ export async function GET() {
   if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const user = dbGetUserById(s.userId);
+  const user = await dbGetUserById(s.userId);
   if (!user) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json(user);
 }

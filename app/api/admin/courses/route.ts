@@ -11,7 +11,8 @@ export async function GET() {
   const s = await verifySession(token);
   if (!s || s.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const courses = getAllCourses().map(c => ({
+  const allCourses = await getAllCourses();
+  const courses = allCourses.map((c: any) => ({
     ...c,
     isSeed: isSeedCourse(c.id),
   }));
@@ -43,19 +44,18 @@ export async function POST(req: Request) {
     );
   }
 
-  const c = dbCreateCustomCourse({
+  const c = await dbCreateCustomCourse({
     id: "cc-" + Math.random().toString(36).slice(2, 8),
     title: parsed.data.title,
     subject: parsed.data.subject,
-    grade: parsed.data.grade as any,
-    major: parsed.data.major as any,
+    grade: parsed.data.grade,
+    major: parsed.data.major,
     teacherId: parsed.data.teacherId,
     conceptIds: [],
     lessons: [],
     summary: parsed.data.summary,
     level: parsed.data.level,
     cover: parsed.data.cover,
-    rating: 0, ratingsCount: 0, students: 0,
   });
   return NextResponse.json({ ok: true, course: c });
 }

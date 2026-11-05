@@ -20,7 +20,7 @@ const Body = z.object({
 });
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const l = dbGetLiveClassById(params.id);
+  const l = await dbGetLiveClassById(params.id);
   if (!l) return NextResponse.json({ error: "not found" }, { status: 404 });
   return NextResponse.json({ live: l });
 }
@@ -31,7 +31,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const existing = dbGetLiveClassById(params.id);
+  const existing = await dbGetLiveClassById(params.id);
   if (!existing) return NextResponse.json({ error: "یافت نشد." }, { status: 404 });
   if (s.role !== "admin" && existing.teacherId !== s.userId) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -42,7 +42,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
   }
 
-  const updated = dbUpdateLiveClass(params.id, {
+  const updated = await dbUpdateLiveClass(params.id, {
     ...parsed.data,
     requiredQuizId: parsed.data.requiredQuizId || undefined,
   });
@@ -55,7 +55,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const existing = dbGetLiveClassById(params.id);
+  const existing = await dbGetLiveClassById(params.id);
   if (!existing) return NextResponse.json({ error: "یافت نشد." }, { status: 404 });
   if (s.role !== "admin" && existing.teacherId !== s.userId) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });

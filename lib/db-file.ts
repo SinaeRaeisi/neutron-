@@ -44,7 +44,8 @@ export async function dbListUsers(): Promise<User[]> {
 export async function dbCreateUser(input: any): Promise<User> {
   const existing = await prisma.user.findFirst({ where: { phone: input.phone } })
   if (existing) throw new Error("duplicate-phone")
-  const u = await prisma.user.create({ data: { name: input.name, phone: input.phone, grade: input.grade, major: input.major, role: "student" } })
+  const dummyEmail = input.email || `phone_${input.phone}@neutron.local`
+  const u = await prisma.user.create({ data: { name: input.name, phone: input.phone, email: dummyEmail, grade: input.grade, major: input.major, role: "student" } })
   return normalizeUser(u)
 }
 export async function dbCreateUserWithEmail(input: any): Promise<User> {

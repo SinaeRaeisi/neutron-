@@ -30,7 +30,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const s = await authAdmin();
   if (!s) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const existing = getArticleBySlug(params.id);
+  const existing = await getArticleBySlug(params.id); // این خط از قبل await داشت
   if (!existing) return NextResponse.json({ error: "مقاله یافت نشد." }, { status: 404 });
 
   const parsed = Body.safeParse(await req.json().catch(() => ({})));
@@ -41,18 +41,16 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     );
   }
 
-  // اگر seed است → override
   if (isSeedArticle(params.id)) {
-    dbSetArticleOverride(params.id, parsed.data);
-    const updated = getArticleBySlug(params.id);
+    await dbSetArticleOverride(params.id, parsed.data); // ← await اضافه شد
+    const updated = await getArticleBySlug(params.id);  // ← await اضافه شد
     return NextResponse.json({ ok: true, article: updated });
   }
 
-  // اگر custom است → update مستقیم
-  const custom = dbGetCustomArticle(params.id);
+  const custom = await dbGetCustomArticle(params.id);   // ← await اینجا هم جا افتاده بود
   if (custom) {
-    dbUpdateCustomArticle(custom.id, parsed.data);
-    const updated = getArticleBySlug(params.id);
+    await dbUpdateCustomArticle(custom.id, parsed.data); // ← await اضافه شد
+    const updated = await getArticleBySlug(params.id);   // ← await اضافه شد
     return NextResponse.json({ ok: true, article: updated });
   }
 
@@ -71,7 +69,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     return NextResponse.json({ ok: true, softDeleted: true });
   }
 
-  const custom = dbGetCustomArticle(params.id);
+  const custom = await dbGetCustomArticle(params.id);
   if (custom) {
     dbDeleteCustomArticle(custom.id);
     return NextResponse.json({ ok: true });

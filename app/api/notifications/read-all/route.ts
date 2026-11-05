@@ -9,6 +9,6 @@ export async function PATCH() {
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const count = dbMarkAllNotificationsRead(s.userId);
+  const count = await dbMarkAllNotificationsRead(s.userId);
   return NextResponse.json({ ok: true, count, unread: 0 });
 }

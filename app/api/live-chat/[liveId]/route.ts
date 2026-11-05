@@ -21,8 +21,8 @@ export async function GET(_: Request, { params }: { params: { liveId: string } }
     });
   }
 
-  const state = dbGetChatState(params.liveId);
-  const messages = dbListChatMessages(
+  const state = await dbGetChatState(params.liveId);
+  const messages = await dbListChatMessages(
     params.liveId,
     s.userId,
     s.role as "student" | "teacher" | "admin"

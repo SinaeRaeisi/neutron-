@@ -37,7 +37,7 @@ export async function GET() {
     } catch { /* noop */ }
   }
 
-  const all = dbListCustomMockExams();
+  const all = await dbListCustomMockExams();
   const now = Date.now();
 
   // 🔒 Admin: full | غیر Admin: بدون answer، questions فقط در پنجرهٔ زمانی
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const exam = dbCreateCustomMockExam({
+  const exam = await dbCreateCustomMockExam({
     id: "me-" + Math.random().toString(36).slice(2, 8),
     title: parsed.data.title,
     grade: parsed.data.grade as any,

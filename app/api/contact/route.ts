@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "اطلاعات نامعتبر." }, { status: 400 });
   }
 
-  const c = dbCreateContact(parsed.data);
+  const c = await dbCreateContact(parsed.data);
   console.log(`[contact] ${c.name} — ${c.phone}`);
   return NextResponse.json({ ok: true, id: c.id });
 }

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = dbCreateUserWithEmail({
+    const user = await dbCreateUserWithEmail({
       name: parsed.data.name.trim(),
       email: verified.email,
       grade: parsed.data.grade as Grade,

@@ -11,7 +11,8 @@ export async function GET() {
   const s = await verifySession(token);
   if (!s || s.role !== "admin") return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
-  const articles = getAllArticles().map(a => ({
+  const allArticles = await getAllArticles();
+  const articles = allArticles.map((a: any) => ({
     ...a,
     isSeed: isSeedArticle(a.slug),
   }));
@@ -53,14 +54,14 @@ export async function POST(req: Request) {
   }
 
   const baseSlug = parsed.data.slug || slugify(parsed.data.title);
-  const all = getAllArticles();
+  const all = await getAllArticles();
   let slug = baseSlug;
   let i = 1;
-  while (all.some(a => a.slug === slug)) {
+  while (all.some((a: any) => a.slug === slug)) {
     slug = `${baseSlug}-${i++}`;
   }
 
-  const a = dbCreateCustomArticle({
+  const a = await dbCreateCustomArticle({
     id: "ca-" + Math.random().toString(36).slice(2, 8),
     slug,
     title: parsed.data.title,

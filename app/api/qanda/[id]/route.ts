@@ -9,7 +9,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   const s = await verifySession(token);
   if (!s) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const q = dbGetQuestion(params.id);
+  const q = await dbGetQuestion(params.id);
   if (!q) return NextResponse.json({ error: "not found" }, { status: 404 });
   if (q.userId !== s.userId && s.role !== "admin") {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });

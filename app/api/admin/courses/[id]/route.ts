@@ -46,7 +46,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     return NextResponse.json({ ok: true, course: getCourseById(params.id) });
   }
 
-  const custom = dbGetCustomCourse(params.id);
+  const custom = await dbGetCustomCourse(params.id);
   if (custom) {
     dbUpdateCustomCourse(custom.id, parsed.data as any);
     return NextResponse.json({ ok: true, course: getCourseById(params.id) });
@@ -67,7 +67,7 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
     return NextResponse.json({ ok: true, softDeleted: true });
   }
 
-  const custom = dbGetCustomCourse(params.id);
+  const custom = await dbGetCustomCourse(params.id);
   if (custom) {
     dbDeleteCustomCourse(custom.id);
     return NextResponse.json({ ok: true });
