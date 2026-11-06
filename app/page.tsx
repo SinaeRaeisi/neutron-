@@ -369,21 +369,21 @@ function Contact() {
                 <Phone className="w-4 h-4 text-lime shrink-0" />
                 <div>
                   <div className="text-xs text-muted">تلفن پشتیبانی</div>
-                  <div dir="ltr" className="font-mono text-paper">۰۲۱-۹۱۰۰ ۲۴۰۰</div>
+                  <div dir="ltr" className="font-mono text-paper">09965672667</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl2 bg-ink-3/60 border border-line/60">
                 <Mail className="w-4 h-4 text-lime shrink-0" />
                 <div>
                   <div className="text-xs text-muted">ایمیل</div>
-                  <div dir="ltr" className="font-mono text-paper text-xs">hello@neutron.ir</div>
+                  <div dir="ltr" className="font-mono text-paper text-xs">@Neutron_ir (Telegram)</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-xl2 bg-ink-3/60 border border-line/60">
                 <MapPin className="w-4 h-4 text-lime shrink-0" />
                 <div>
                   <div className="text-xs text-muted">دفتر</div>
-                  <div className="text-paper">تهران، خیابان ولیعصر</div>
+                  <div className="text-paper">تهران</div>
                 </div>
               </div>
             </div>
@@ -411,8 +411,8 @@ function Footer() {
               هستهٔ یادگیری. پلتفرمی که مسیر یادگیری را از روی داده می‌سازد.
             </p>
             <div className="flex gap-3 mt-4 text-sm text-muted flex-wrap">
-              <span className="flex items-center gap-1"><Phone className="w-3 h-3" /><span dir="ltr">۰۲۱-۹۱۰۰ ۲۴۰۰</span></span>
-              <span className="flex items-center gap-1"><Mail className="w-3 h-3" />hello@neutron.ir</span>
+              <span className="flex items-center gap-1"><Phone className="w-3 h-3" /><span dir="ltr">09965672667</span></span>
+              <span className="flex items-center gap-1"><Mail className="w-3 h-3" />@Neutron_ir (Telegram)</span>
             </div>
           </div>
           <div>

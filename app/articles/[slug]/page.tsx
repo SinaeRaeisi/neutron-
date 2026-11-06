@@ -1,7 +1,7 @@
-"use client";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Clock, Calendar, Tag, ArrowRight, Sparkles } from "lucide-react";
-import { getArticle, getTeacher } from "@/lib/data";
+import { getArticleBySlug } from "@/lib/content";
 
 const cover = {
   lime:   "from-lime/25 via-lime/10 to-transparent border-lime/20",
@@ -11,31 +11,13 @@ const cover = {
   rose:   "from-rose/25 via-rose/10 to-transparent border-rose/20",
 } as const;
 
-export default function PublicArticlePage({ params }: { params: { slug: string } }) {
-  const a = getArticle(decodeURIComponent(params.slug));
+export default async function PublicArticlePage({ params }: { params: { slug: string } }) {
+  const a = await getArticleBySlug(decodeURIComponent(params.slug));
 
   if (!a) {
-    return (
-      <div className="min-h-dvh bg-ink text-paper">
-        <header className="border-b border-line/60">
-          <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-lime/10 border border-lime/30 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-lime" />
-              </div>
-              <span className="text-lime font-black tracking-[0.15em] text-sm">نوترون</span>
-            </Link>
-          </div>
-        </header>
-        <div className="max-w-xl mx-auto card text-center py-12 mt-12">
-          <p className="text-muted mb-4">مقاله یافت نشد.</p>
-          <Link href="/articles" className="btn-ghost">بازگشت به مقالات</Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
-  const author = getTeacher(a.authorId);
   const dateStr = new Date(a.publishedAt).toLocaleDateString("fa-IR", {
     year: "numeric", month: "long", day: "numeric",
   });
@@ -67,7 +49,7 @@ export default function PublicArticlePage({ params }: { params: { slug: string }
         <header>
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <span className="chip border-lime/40 text-lime bg-lime/5">{a.category}</span>
-            {a.tags.map(t => (
+            {a.tags.map((t: string) => (
               <span key={t} className="chip text-[10px]">
                 <Tag className="w-3 h-3" />{t}
               </span>
@@ -78,18 +60,27 @@ export default function PublicArticlePage({ params }: { params: { slug: string }
           <div className="flex items-center gap-4 mt-5 pb-5 border-b border-line text-sm text-muted flex-wrap">
             <span className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-lime/20 text-lime flex items-center justify-center text-xs font-bold">
-                {author?.name[0] ?? "ن"}
+                ت
               </div>
-              {author?.name ?? "تیم نوترون"}
+              تیم تحریریه نوترون
             </span>
             <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{dateStr}</span>
             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{a.readMinutes} دقیقه مطالعه</span>
           </div>
         </header>
 
-        <div className={`aspect-[21/9] rounded-xl2 bg-gradient-to-br ${cover[a.cover]} border relative overflow-hidden`}>
-          <div className="absolute inset-0 surface-grid opacity-20" />
-        </div>
+        {/* بخش نمایش کاور */}
+        {a.coverImage ? (
+          <img 
+            src={a.coverImage} 
+            alt={a.title} 
+            className="w-full aspect-[21/9] object-cover rounded-xl2 border border-line" 
+          />
+        ) : (
+          <div className={`aspect-[21/9] rounded-xl2 bg-gradient-to-br ${cover[a.cover]} border relative overflow-hidden`}>
+            <div className="absolute inset-0 surface-grid opacity-20" />
+          </div>
+        )}
 
         <div className="space-y-4">
           {blocks.map((block, i) => {

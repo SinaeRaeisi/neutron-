@@ -128,6 +128,7 @@ export interface Article {
   authorId: string;
   category: string;
   cover: CoverColor;
+  coverImage?: string; // ← این خط اضافه شد
   readMinutes: number;
   publishedAt: string;
   tags: string[];

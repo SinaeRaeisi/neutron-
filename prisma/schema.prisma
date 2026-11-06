@@ -247,6 +247,7 @@ model Article {
   authorId    String
   category    String
   cover       String
+  coverImage  String?  // ← این خط اضافه شد
   readMinutes Int
   publishedAt DateTime @default(now())
   tags        String[]
